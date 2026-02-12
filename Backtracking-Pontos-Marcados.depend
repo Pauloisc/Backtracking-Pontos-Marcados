@@ -1,0 +1,13 @@
+# depslib dependency file v1.0
+1770934394 source:c:\users\paulo Ítalo\documents\estudos\universidade\atividades\ed2\backtracking-pontos-marcados\main.c
+	<stdio.h>
+	<stdlib.h>
+	<string.h>
+	"cidade.h"
+
+1770935199 c:\users\paulo Ítalo\documents\estudos\universidade\atividades\ed2\backtracking-pontos-marcados\cidade.h
+
+1770935038 source:c:\users\paulo Ítalo\documents\estudos\universidade\atividades\ed2\backtracking-pontos-marcados\cidade.c
+	<stdio.h>
+	"cidade.h"
+
