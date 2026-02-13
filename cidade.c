@@ -26,6 +26,21 @@ double gerar_ponto_intervalo_inclusivo(double min, double max) {
     return min + (max - min) * ((double) rand() / RAND_MAX);
 }
 
+double distancia_euclidiana(double xf, double xi, double yf, double yi) {
+    double x_diff = xf - xi;
+    double y_diff = yf - yi;
+
+    return sqrt(x_diff * x_diff + y_diff * y_diff);
+}
+
+int checar_cidade_muito_proxima(CidadeGrid *grid, int p, int qtd) {
+    for (int i = 0; i < qtd; i++) {
+        if (distancia_euclidiana(grid[i].x, grid[p].x, grid[i].y, grid[p].y) < DISTANCIA_MINIMA_CIDADES)
+            return 1;
+    }
+    return 0;
+}
+
 /**
  * O objetivo aqui é determinar as células utilizadas para inserir cada cidade.
  * O processo é feito aleatoriamente, mas garantindo que cada célula seja
@@ -78,8 +93,11 @@ void posicionar_cidades(CidadeGrid *grid, int tam) {
         double x_lim_2 = x_lim_1 - tam_celula;
         double y_lim_1 = Y_MAX - lin * tam_celula;
         double y_lim_2 = y_lim_1 - tam_celula;
-        grid[i].x = gerar_ponto_intervalo_inclusivo(x_lim_1, x_lim_2);
-        grid[i].y = gerar_ponto_intervalo_inclusivo(y_lim_1, y_lim_2);
+        do {
+            grid[i].x = gerar_ponto_intervalo_inclusivo(x_lim_1, x_lim_2);
+            grid[i].y = gerar_ponto_intervalo_inclusivo(y_lim_1, y_lim_2);
+        } while (checar_cidade_muito_proxima(grid, i, i));
+
     }
 }
 

@@ -7,6 +7,7 @@
 #define X_MAX 50.0
 #define Y_MIN -50.0
 #define Y_MAX 50.0
+#define DISTANCIA_MINIMA_CIDADES 3.0
 
 typedef struct Cidade Cidade;
 
