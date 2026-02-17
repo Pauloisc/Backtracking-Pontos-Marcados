@@ -14,7 +14,7 @@ void conectarCidades (Cidade *origem, Cidade *destino, int distancia){
     destino->num_vizinhos++;
 }
 // "i" recebe o valor de num_vizinhos da origem
-// Origem colocará o destino como vizinho e a sua distancia no indice indicado
+// Origem colocarï¿½ o destino como vizinho e a sua distancia no indice indicado
 
 void exibirConexoes (Cidade *origem){
     for (int i = 0; i < origem->num_vizinhos; i++){
@@ -42,10 +42,10 @@ int checar_cidade_muito_proxima(CidadeGrid *grid, int p, int qtd) {
 }
 
 /**
- * O objetivo aqui é determinar as células utilizadas para inserir cada cidade.
- * O processo é feito aleatoriamente, mas garantindo que cada célula seja
- * adjacente à anterior ou exatamente na mesma célula. O interesse são as
- * células e não a posição.
+ * O objetivo aqui ï¿½ determinar as cï¿½lulas utilizadas para inserir cada cidade.
+ * O processo ï¿½ feito aleatoriamente, mas garantindo que cada cï¿½lula seja
+ * adjacente ï¿½ anterior ou exatamente na mesma cï¿½lula. O interesse sï¿½o as
+ * cï¿½lulas e nï¿½o a posiï¿½ï¿½o.
  */
 void definir_celulas(int *celulas_grid, int tam, int quadrados) {
     int total_celulas = quadrados * quadrados;
@@ -70,14 +70,14 @@ void definir_celulas(int *celulas_grid, int tam, int quadrados) {
 }
 
 /**
- * A ideia por trás é dividr um plano cartesiano xoy, com x e y variando de
- * -50 a 50, em várias celulas, de modo a formar uma grid para posicionar as
- * cidades numa mesma célula ou em células adjacentes.
+ * A ideia por trï¿½s ï¿½ dividr um plano cartesiano xoy, com x e y variando de
+ * -50 a 50, em vï¿½rias celulas, de modo a formar uma grid para posicionar as
+ * cidades numa mesma cï¿½lula ou em cï¿½lulas adjacentes.
  *
- * Assumimos que quantidade total de cidades (tam) é um quadrado composto por
- * vários quadrados (que seriam as cidade individuais). A ideia é descobrir
+ * Assumimos que quantidade total de cidades (tam) ï¿½ um quadrado composto por
+ * vï¿½rios quadrados (que seriam as cidade individuais). A ideia ï¿½ descobrir
  * a quantidade de quadrados que formam o lado do quadrado maior para poder
- * descobrir o tamanho de seu lado para encaixá-los nas células do plano.
+ * descobrir o tamanho de seu lado para encaixï¿½-los nas cï¿½lulas do plano.
  */
 void posicionar_cidades(CidadeGrid *grid, int tam) {
     int quadrados = ceil(sqrt(tam));
@@ -101,4 +101,45 @@ void posicionar_cidades(CidadeGrid *grid, int tam) {
     }
 }
 
-// Mostra todas as conexões de uma cidade
+void conectarOrfao(CidadeGrid *grid, int tam, Cidade cidade, int indiceOrfao) {
+    int mais_proxima = -1;
+    double menor_distancia = INT_MAX;
+    for (int i = 0; i < tam; i++) {
+        if (i == indiceOrfao) continue;
+        if (grid[i].cidade.num_vizinhos >= MAX_VIZINHOS) continue;
+        double dist = distancia_euclidiana(grid[indiceOrfao].x, grid[i].x, grid[indiceOrfao].y, grid[i].y);
+        if (dist < menor_distancia) {
+            menor_distancia = dist;
+            mais_proxima = i;
+        }
+    }
+    if (mais_proxima != -1) {
+        conectarCidades(&cidade, &grid[mais_proxima].cidade, (int)menor_distancia);
+    }
+}
+
+int orfao(Cidade *cidade) {
+    return cidade->num_vizinhos == 0;
+}
+
+void conectarGrafoRaio(CidadeGrid *grid, int tam, double raio) {
+    for (int i = 0; i < tam; i++) {
+        for (int j = i + 1; j < tam; j++) {
+            double dist = distancia_euclidiana(grid[i].x, grid[j].x, grid[i].y, grid[j].y);
+
+            if (dist <= raio) {
+                if (grid[i].cidade.num_vizinhos < MAX_VIZINHOS &&
+                    grid[j].cidade.num_vizinhos < MAX_VIZINHOS) {
+                    conectarCidades(&grid[i].cidade, &grid[j].cidade, (int)dist);
+                } else {
+                    printf("max vizinhos\n");
+                }
+            }
+        }
+        if(orfao(&grid[i].cidade)){
+            conectarOrfao(grid,tam,grid[i].cidade,i);
+        }
+    }
+}
+
+// Mostra todas as conexï¿½es de uma cidade
