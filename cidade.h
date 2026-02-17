@@ -2,7 +2,7 @@
 #define CIDADE_H
 
 #define MAX_NOME 50
-#define MAX_VIZINHOS 5
+#define MAX_VIZINHOS 10
 #define X_MIN -50.0
 #define X_MAX 50.0
 #define Y_MIN -50.0
@@ -12,6 +12,7 @@
 typedef struct Cidade Cidade;
 
 struct Cidade{
+    int id;
     char nome[MAX_NOME + 1];
     Cidade *vizinhos [MAX_VIZINHOS];
     int vizinho_distancia [MAX_VIZINHOS];
@@ -32,6 +33,7 @@ struct cidade_grid {
 void conectarCidades(Cidade *origem, Cidade *destino, int distancia);
 void exibirConexoes(Cidade *origem);
 void conectarGrafoRaio(CidadeGrid *grid, int tam, double raio);
-void posicionar_cidades(CidadeGrid *grid, int tam);
+void garantir_grafo_conexo(CidadeGrid *grid, int tam);
+int posicionar_cidades(CidadeGrid *grid, int tam);
 
 #endif // CIDADE_H
