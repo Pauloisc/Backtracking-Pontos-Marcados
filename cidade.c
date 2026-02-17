@@ -2,6 +2,8 @@
 #include <stdlib.h>
 #include "cidade.h"
 #include <math.h>
+#include <string.h>
+#include <float.h>
 
 void conectarCidades (Cidade *origem, Cidade *destino, int distancia){
     int i = origem->num_vizinhos;
@@ -14,7 +16,7 @@ void conectarCidades (Cidade *origem, Cidade *destino, int distancia){
     destino->num_vizinhos++;
 }
 // "i" recebe o valor de num_vizinhos da origem
-// Origem colocará o destino como vizinho e a sua distancia no indice indicado
+// Origem colocarï¿½ o destino como vizinho e a sua distancia no indice indicado
 
 void exibirConexoes (Cidade *origem){
     for (int i = 0; i < origem->num_vizinhos; i++){
@@ -42,10 +44,10 @@ int checar_cidade_muito_proxima(CidadeGrid *grid, int p, int qtd) {
 }
 
 /**
- * O objetivo aqui é determinar as células utilizadas para inserir cada cidade.
- * O processo é feito aleatoriamente, mas garantindo que cada célula seja
- * adjacente à anterior ou exatamente na mesma célula. O interesse são as
- * células e não a posição.
+ * O objetivo aqui ï¿½ determinar as cï¿½lulas utilizadas para inserir cada cidade.
+ * O processo ï¿½ feito aleatoriamente, mas garantindo que cada cï¿½lula seja
+ * adjacente ï¿½ anterior ou exatamente na mesma cï¿½lula. O interesse sï¿½o as
+ * cï¿½lulas e nï¿½o a posiï¿½ï¿½o.
  */
 void definir_celulas(int *celulas_grid, int tam, int quadrados) {
     int total_celulas = quadrados * quadrados;
@@ -70,16 +72,16 @@ void definir_celulas(int *celulas_grid, int tam, int quadrados) {
 }
 
 /**
- * A ideia por trás é dividr um plano cartesiano xoy, com x e y variando de
- * -50 a 50, em várias celulas, de modo a formar uma grid para posicionar as
- * cidades numa mesma célula ou em células adjacentes.
+ * A ideia por trï¿½s ï¿½ dividr um plano cartesiano xoy, com x e y variando de
+ * -50 a 50, em vï¿½rias celulas, de modo a formar uma grid para posicionar as
+ * cidades numa mesma cï¿½lula ou em cï¿½lulas adjacentes.
  *
- * Assumimos que quantidade total de cidades (tam) é um quadrado composto por
- * vários quadrados (que seriam as cidade individuais). A ideia é descobrir
+ * Assumimos que quantidade total de cidades (tam) ï¿½ um quadrado composto por
+ * vï¿½rios quadrados (que seriam as cidade individuais). A ideia ï¿½ descobrir
  * a quantidade de quadrados que formam o lado do quadrado maior para poder
- * descobrir o tamanho de seu lado para encaixá-los nas células do plano.
+ * descobrir o tamanho de seu lado para encaixï¿½-los nas cï¿½lulas do plano.
  */
-void posicionar_cidades(CidadeGrid *grid, int tam) {
+int posicionar_cidades(CidadeGrid *grid, int tam) {
     int quadrados = ceil(sqrt(tam));
     double tam_celula = (X_MAX - X_MIN) / quadrados;
     int celulas_grid[tam];
@@ -97,8 +99,153 @@ void posicionar_cidades(CidadeGrid *grid, int tam) {
             grid[i].x = gerar_ponto_intervalo_inclusivo(x_lim_1, x_lim_2);
             grid[i].y = gerar_ponto_intervalo_inclusivo(y_lim_1, y_lim_2);
         } while (checar_cidade_muito_proxima(grid, i, i));
+    }
 
+    return tam_celula;
+}
+
+void conectar_cidade_mais_proxima(CidadeGrid *grid, Cidade *cidade, int tam, int indice) {
+    int menor_dist = INT_MAX;
+    int mais_proxima = -1;
+
+    for (int i = 0; i < tam; i++) {
+        if (&grid[i].cidade == cidade) continue;
+        int temp = distancia_euclidiana(grid[i].x, grid[indice].x,
+                                        grid[i].y, grid[indice].y);
+        if (temp < menor_dist && grid[i].cidade.num_vizinhos < MAX_VIZINHOS) {
+            menor_dist = temp;
+            mais_proxima = i;
+        }
+    }
+    if (mais_proxima != -1)
+        conectarCidades(cidade, &grid[mais_proxima].cidade, menor_dist);
+}
+
+void conectarOrfao(CidadeGrid *grid, int tam, Cidade *cidade, int indiceOrfao) {
+    conectar_cidade_mais_proxima(grid, cidade, tam, indiceOrfao);
+}
+
+int orfao(Cidade *cidade) {
+    return cidade->num_vizinhos == 0;
+}
+
+void conectarGrafoRaio(CidadeGrid *grid, int tam, double raio) {
+    for (int i = 0; i < tam; i++) {
+        for (int j = i + 1; j < tam; j++) {
+            double dist = distancia_euclidiana(grid[i].x, grid[j].x, grid[i].y, grid[j].y);
+
+            if (dist <= raio) {
+                if (grid[i].cidade.num_vizinhos < MAX_VIZINHOS &&
+                    grid[j].cidade.num_vizinhos < MAX_VIZINHOS) {
+                    conectarCidades(&grid[i].cidade, &grid[j].cidade, (int)dist);
+                } else {
+                    printf("max vizinhos\n");
+                }
+            }
+        }
+        if(orfao(&grid[i].cidade)){
+            conectarOrfao(grid,tam,&grid[i].cidade,i);
+        }
     }
 }
 
-// Mostra todas as conexões de uma cidade
+void desconectarCidades(Cidade *a, Cidade *b) {
+    for (int i = 0; i < a->num_vizinhos; i++) {
+        if (a->vizinhos[i]->id == b->id) {
+            for (int j = i; j < a->num_vizinhos; j++) {
+                a->vizinhos[j] = a->vizinhos[j+1];
+                a->vizinho_distancia[j] = a->vizinho_distancia[j+1];
+            }
+            a->num_vizinhos--;
+            break;
+        }
+    }
+    for (int i = 0; i < b->num_vizinhos; i++) {
+        if (b->vizinhos[i]->id == a->id) {
+            for (int j = i; j < b->num_vizinhos; j++) {
+                b->vizinhos[j] = b->vizinhos[j+1];
+                b->vizinho_distancia[j] = b->vizinho_distancia[j+1];
+            }
+            b->num_vizinhos--;
+            break;
+        }
+    }
+}
+
+void expulsar_vizinho_mais_distante(Cidade *c) {
+    int maior_dist = -1;
+    int remover = -1;
+
+    for (int i = 0; i < c->num_vizinhos; i++) {
+        if (c->vizinho_distancia[i] > maior_dist) {
+            maior_dist = c->vizinho_distancia[i];
+            remover = i;
+        }
+    }
+
+    if (remover != -1) {
+        desconectarCidades(c, c->vizinhos[remover]);
+    }
+}
+
+void garantir_grafo_conexo(CidadeGrid *grid, int tam) {
+    int *visitado = (int*) calloc(tam, sizeof(int));
+    int *fila = (int*) malloc(tam * sizeof(int));
+    int inicio = 0, fim = 0, count = 0;
+
+    fila[fim++] = 0;
+    visitado[0] = 1;
+    count++;
+
+    while (inicio < fim) {
+        int atual_id = fila[inicio++];
+        Cidade *c_atual = &grid[atual_id].cidade;
+        for (int i = 0; i < c_atual->num_vizinhos; i++) {
+            int vizinho_id = c_atual->vizinhos[i]->id;
+            if (!visitado[vizinho_id]) {
+                visitado[vizinho_id] = 1;
+                fila[fim++] = vizinho_id;
+                count++;
+            }
+        }
+    }
+
+    if (count < tam) {
+        double menor_dist = DBL_MAX;
+        int melhor_orfao = -1;
+        int melhor_visitado = -1;
+
+        for (int i = 0; i < tam; i++) {
+            if (visitado[i]) continue;
+            for (int j = 0; j < count; j++) {
+                int v_id = fila[j];
+                double d = distancia_euclidiana(grid[i].x, grid[v_id].x, grid[i].y, grid[v_id].y);
+                if (d < menor_dist) {
+                    menor_dist = d;
+                    melhor_orfao = i;
+                    melhor_visitado = v_id;
+                }
+            }
+        }
+
+        if (melhor_orfao != -1) {
+            Cidade *c_orfao = &grid[melhor_orfao].cidade;
+            Cidade *c_conect = &grid[melhor_visitado].cidade;
+
+            if (c_orfao->num_vizinhos >= MAX_VIZINHOS)
+                expulsar_vizinho_mais_distante(c_orfao);
+            if (c_conect->num_vizinhos >= MAX_VIZINHOS)
+                expulsar_vizinho_mais_distante(c_conect);
+
+            conectarCidades(c_orfao, c_conect, (int)menor_dist);
+        }
+
+        free(visitado);
+        free(fila);
+        garantir_grafo_conexo(grid, tam);
+        return;
+    }
+
+    free(visitado);
+    free(fila);
+}
