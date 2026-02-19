@@ -107,25 +107,21 @@ int posicionar_cidades(CidadeGrid *grid, int tam) {
     return tam_celula;
 }
 
-void conectar_cidade_mais_proxima(CidadeGrid *grid, Cidade *cidade, int tam, int indice) {
-    int menor_dist = INT_MAX;
+void conectarOrfao(CidadeGrid *grid, int tam, Cidade *cidade, int indice_orfao) {
     int mais_proxima = -1;
-
+    double menor_distancia = INT_MAX;
     for (int i = 0; i < tam; i++) {
-        if (&grid[i].cidade == cidade) continue;
-        int temp = distancia_euclidiana(grid[i].x, grid[indice].x,
-                                        grid[i].y, grid[indice].y);
-        if (temp < menor_dist && grid[i].cidade.num_vizinhos < MAX_VIZINHOS) {
-            menor_dist = temp;
+        if (i == indice_orfao) continue;
+        if (grid[i].cidade.num_vizinhos >= MAX_VIZINHOS) continue;
+        double dist = distancia_euclidiana(grid[indice_orfao].x, grid[i].x, grid[indice_orfao].y, grid[i].y);
+        if (dist < menor_distancia) {
+            menor_distancia = dist;
             mais_proxima = i;
         }
     }
-    if (mais_proxima != -1)
-        conectarCidades(cidade, &grid[mais_proxima].cidade, menor_dist);
-}
-
-void conectarOrfao(CidadeGrid *grid, int tam, Cidade *cidade, int indiceOrfao) {
-    conectar_cidade_mais_proxima(grid, cidade, tam, indiceOrfao);
+    if (mais_proxima != -1) {
+        conectarCidades(cidade, &grid[mais_proxima].cidade, (int)menor_distancia);
+    }
 }
 
 int orfao(Cidade *cidade) {
