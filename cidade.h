@@ -35,5 +35,6 @@ void exibirConexoes(Cidade *origem);
 void conectarGrafoRaio(CidadeGrid *grid, int tam, double raio);
 void garantir_grafo_conexo(CidadeGrid *grid, int tam);
 int posicionar_cidades(CidadeGrid *grid, int tam);
+void backtrack(int *a, int k, int id_destino, CidadeGrid *grid, int total_cidade);
 
 #endif // CIDADE_H

@@ -4,6 +4,9 @@
 #include <math.h>
 #include <string.h>
 #include <float.h>
+#include <stdbool.h>
+#include <limits.h>
+
 
 void conectarCidades (Cidade *origem, Cidade *destino, int distancia){
     int i = origem->num_vizinhos;
@@ -248,4 +251,102 @@ void garantir_grafo_conexo(CidadeGrid *grid, int tam) {
 
     free(visitado);
     free(fila);
+}
+
+/* Solucao: chegou na cidade destino */
+int is_a_solution(int cidade_atual, int id_destino){
+    return cidade_atual == id_destino;
+}
+
+int ja_visitou(int *a, int k, int id_cidade){
+    for(int i = 0;i<=k; i++){
+        if(a[i] == id_cidade){
+            return 1;
+        }
+    }
+    return 0;
+ }
+
+/* --- Variaveis de DP para guardar o melhor caminho --- */
+static int melhor_caminho[32];
+static int melhor_tam  = 0;
+static int melhor_dist = INT_MAX;
+static int dist_acum[32];
+
+/* Salva o caminho atual se for o melhor encontrado */
+void process_solution(int *a, int k){
+    int dist = dist_acum[k];
+    if(dist < melhor_dist){
+        melhor_dist = dist;
+        melhor_tam  = k + 1;
+        for(int i = 0; i <= k; i++)
+            melhor_caminho[i] = a[i];
+    }
+}
+
+/* Gera os vizinhos validos (nao visitados) da cidade atual a[k] */
+void generateCandidates(int *a, int k, CidadeGrid *grid, int c[], int *nCandidates){
+    *nCandidates = 0;
+    Cidade *atual = &grid[a[k]].cidade;
+    for(int i = 0; i < atual->num_vizinhos; i++){
+        int id_viz = atual->vizinhos[i]->id;
+        if(!ja_visitou(a, k, id_viz)){
+            c[*nCandidates] = id_viz;
+            *nCandidates = *nCandidates + 1;
+        }
+    }
+}
+
+/**
+ * Backtracking estruturado no padrao:
+ *   if(i == k) → process_solution
+ *   senao       → generateCandidates + loop recursivo com i+1
+ *
+ * Passa por TODAS as cidades (caminho Hamiltoniano).
+ * Guarda e exibe apenas a rota de menor custo que termina em id_destino.
+ *
+ * Chamada inicial (main): backtrack(caminho, 0, id_destino, grid, qtd)
+ *   com caminho[0] = id_origem ja preenchido e k=0.
+ */
+void backtrack(int *a, int k, int id_destino, CidadeGrid *grid, int total_cidade){
+    if(is_a_solution(a[k], id_destino)){
+        process_solution(a, k);
+        return;
+    }
+
+    int c[MAX_VIZINHOS];
+    int nCandidates = 0;
+    generateCandidates(a, k, grid, c, &nCandidates);
+
+    for(int i = 0; i < nCandidates; i++){
+        a[k+1] = c[i];
+
+        /* DP: calcula distancia acumulada ate k+1 */
+        Cidade *atual = &grid[a[k]].cidade;
+        for(int j = 0; j < atual->num_vizinhos; j++){
+            if(atual->vizinhos[j]->id == a[k+1]){
+                dist_acum[k+1] = dist_acum[k] + atual->vizinho_distancia[j];
+                break;
+            }
+        }
+
+        /* Poda: abandona ramo se ja excede o melhor */
+        if(dist_acum[k+1] >= melhor_dist) continue;
+
+        backtrack(a, k+1, id_destino, grid, total_cidade);
+    }
+
+    /* Ao retornar para a chamada inicial, exibe o melhor resultado */
+    if(k == 0){
+        if(melhor_tam == 0){
+            printf("\nNenhum caminho encontrado.\n");
+        } else {
+            printf("\nMenor rota encontrada (%d KM):\n", melhor_dist);
+            for(int i = 0; i < melhor_tam; i++){
+                printf("%s", grid[melhor_caminho[i]].cidade.nome);
+                if(i < melhor_tam - 1) printf(" -> ");
+            }
+            printf("\n");
+        }
+    }
 }
