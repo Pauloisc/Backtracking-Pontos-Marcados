@@ -28,6 +28,11 @@ struct cidade_grid {
     double y;
 };
 
+extern int melhor_caminho[32];
+extern int melhor_tam;
+extern int melhor_dist;
+extern int dist_acum[32];
+
 // STRUCT QUE CONTERA O NOME, VIZINHOS, DISTANCIA E NUMERO DOS VIZINHOS DA CIDADE
 
 void conectarCidades(Cidade *origem, Cidade *destino, int distancia);

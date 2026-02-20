@@ -263,15 +263,14 @@ int ja_visitou(int *a, int k, int id_cidade){
     return 0;
  }
 
-/* --- Variaveis de DP para guardar o melhor caminho --- */
-static int melhor_caminho[32];
-static int melhor_tam  = 0;
-static int melhor_dist = INT_MAX;
-static int dist_acum[32];
-
 /* Salva o caminho atual se for o melhor encontrado */
-void process_solution(int *a, int k){
+void process_solution(CidadeGrid *grid, int *a, int k){
     int dist = dist_acum[k];
+    for (int i = 0; i <= k; i++) {
+        printf("%s", grid[a[i]].cidade.nome);
+        if(i < k) printf(" -> ");
+    }
+    printf(" (%d Km)\n", dist);
     if(dist < melhor_dist){
         melhor_dist = dist;
         melhor_tam  = k + 1;
@@ -293,6 +292,11 @@ void generateCandidates(int *a, int k, CidadeGrid *grid, int c[], int *nCandidat
     }
 }
 
+int melhor_caminho[32];
+int melhor_tam  = 0;
+int melhor_dist = INT_MAX;
+int dist_acum[32];
+
 /**
  * Backtracking estruturado no padrao:
  *   if(i == k) → process_solution
@@ -306,7 +310,7 @@ void generateCandidates(int *a, int k, CidadeGrid *grid, int c[], int *nCandidat
  */
 void backtrack(int *a, int k, int id_destino, CidadeGrid *grid, int total_cidade){
     if(is_a_solution(a[k], id_destino)){
-        process_solution(a, k);
+        process_solution(grid, a, k);
         return;
     }
 
@@ -330,19 +334,5 @@ void backtrack(int *a, int k, int id_destino, CidadeGrid *grid, int total_cidade
         if(dist_acum[k+1] >= melhor_dist) continue;
 
         backtrack(a, k+1, id_destino, grid, total_cidade);
-    }
-
-    /* Ao retornar para a chamada inicial, exibe o melhor resultado */
-    if(k == 0){
-        if(melhor_tam == 0){
-            printf("\nNenhum caminho encontrado.\n");
-        } else {
-            printf("\nMenor rota encontrada (%d KM):\n", melhor_dist);
-            for(int i = 0; i < melhor_tam; i++){
-                printf("%s", grid[melhor_caminho[i]].cidade.nome);
-                if(i < melhor_tam - 1) printf(" -> ");
-            }
-            printf("\n");
-        }
     }
 }

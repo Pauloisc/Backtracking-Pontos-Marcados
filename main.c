@@ -107,5 +107,16 @@ int main()
 
     escolher_rota(cidadeGrid, qtd);
 
+    if(melhor_tam == 0){
+        printf("\nNenhum caminho encontrado.\n");
+    } else {
+        printf("\nMenor rota encontrada (%d Km):\n", melhor_dist);
+        for(int i = 0; i < melhor_tam; i++){
+            printf("%s", cidadeGrid[melhor_caminho[i]].cidade.nome);
+            if(i < melhor_tam - 1) printf(" -> ");
+        }
+        printf("\n");
+    }
+
     return 0;
 }
