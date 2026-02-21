@@ -182,9 +182,7 @@ void expulsar_vizinho_mais_distante(Cidade *c) {
         }
     }
 
-    if (remover != -1) {
-        desconectarCidades(c, c->vizinhos[remover]);
-    }
+    desconectarCidades(c, c->vizinhos[remover]);
 }
 
 void garantir_grafo_conexo(CidadeGrid *grid, int tam) {
@@ -227,17 +225,15 @@ void garantir_grafo_conexo(CidadeGrid *grid, int tam) {
             }
         }
 
-        if (melhor_orfao != -1) {
-            Cidade *c_orfao = &grid[melhor_orfao].cidade;
-            Cidade *c_conect = &grid[melhor_visitado].cidade;
+        Cidade *c_orfao = &grid[melhor_orfao].cidade;
+        Cidade *c_conect = &grid[melhor_visitado].cidade;
 
-            if (c_orfao->num_vizinhos >= MAX_VIZINHOS)
-                expulsar_vizinho_mais_distante(c_orfao);
-            if (c_conect->num_vizinhos >= MAX_VIZINHOS)
-                expulsar_vizinho_mais_distante(c_conect);
+        if (c_orfao->num_vizinhos >= MAX_VIZINHOS)
+            expulsar_vizinho_mais_distante(c_orfao);
+        if (c_conect->num_vizinhos >= MAX_VIZINHOS)
+            expulsar_vizinho_mais_distante(c_conect);
 
-            conectarCidades(c_orfao, c_conect, (int)menor_dist);
-        }
+        conectarCidades(c_orfao, c_conect, (int)menor_dist);
 
         free(visitado);
         free(fila);
